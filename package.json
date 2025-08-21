@@ -1,0 +1,42 @@
+{
+  "name": "Banglore-Music-Strip",
+  "version": "0.0.1",
+  "private": true,
+  "homepage": "https://anjalb.github.io/BMS-3-copy",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "@ar-js-org/ar.js": "3.4.7",
+    "@react-spring/core": "^9.7.5",
+    "@react-spring/three": "^9.7.5",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@react-three/xr": "^6.2.0",
+    "@theatre/core": "^0.7.2",
+    "@theatre/r3f": "^0.7.2",
+    "@theatre/studio": "^0.7.2",
+    "@types/three": "0.160.0",
+    "gsap": "^3.13.0",
+    "leva": "^0.10.0",
+    "lottie-web": "^5.13.0",
+    "popmotion": "^11.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.7.1",
+    "seedrandom": "^3.0.5",
+    "three": "^0.155.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.2.0",
+    "gh-pages": "^6.3.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.2.0"
+  }
+}
