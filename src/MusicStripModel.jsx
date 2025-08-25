@@ -74,7 +74,9 @@ const MusicStripModel = forwardRef(({ onVideoTrigger }, ref) => {
       // Collect video clickable meshes - more flexible matching
       if (VIDEO_MESHES.includes(name)) {
         videoMeshes.current[name] = child;
-        child.userData.videoIndex = Number(name.replace('P', '')); // P1 -> 1
+        child.userData.videoIndex = Number(name.replace('P', '')) - 1; // P1 -> 0, P2 -> 1, etc.
+        
+        console.log(`🎬 Setup: ${name} assigned videoIndex ${child.userData.videoIndex}`);
         
         // Special logging for P5
         if (name === 'P5') {
@@ -169,7 +171,7 @@ const MusicStripModel = forwardRef(({ onVideoTrigger }, ref) => {
         const idx = target.userData?.videoIndex;
         console.log(`🎬 Clicked ${target.name} - triggering video ${idx}`);
         console.log(`🎬 Target userData:`, target.userData);
-        if (idx && onVideoTrigger) {
+        if (idx !== undefined && idx !== null && onVideoTrigger) {
           console.log(`🎬 Calling onVideoTrigger with ${idx}`);
           onVideoTrigger(idx);
         } else {
