@@ -166,7 +166,7 @@ const MusicStrip = () => {
   };
 
   // Function to fade specific sound audio in or out
-  const fadeSoundAudio = (audioRef, soundName, targetVolume, duration = 800) => {
+  const fadeSoundAudio = (audioRef, soundName, targetVolume, duration = 800, shouldPause = true) => {
     const audio = audioRef.current;
     if (!audio) return;
     
@@ -189,8 +189,8 @@ const MusicStrip = () => {
         clearInterval(soundFadeIntervals.current[soundName]);
         soundFadeIntervals.current[soundName] = null;
         
-        // If fading out to 0, pause the audio
-        if (targetVolume === 0) {
+        // Only pause the audio if we're fading out to 0 AND shouldPause is true
+        if (targetVolume === 0 && shouldPause) {
           audio.pause();
         }
       }
@@ -238,7 +238,7 @@ const MusicStrip = () => {
         audio.currentTime = 0; // Reset to beginning
         audio.volume = 0; // Start at 0 volume
         audio.play().then(() => {
-          fadeSoundAudio(ref, name, volume, 600); // Fade in over 600ms
+          fadeSoundAudio(ref, name, volume, 600, false); // Fade in over 600ms, don't pause when done
         }).catch(console.error);
       } else if (!shouldPlay && isPlaying) {
         console.log(`Stopping ${name} sound - fade out`);
@@ -247,7 +247,7 @@ const MusicStrip = () => {
           newSet.delete(name);
           return newSet;
         });
-        fadeSoundAudio(ref, name, 0, 400); // Fade out over 400ms
+        fadeSoundAudio(ref, name, 0, 400, true); // Fade out over 400ms and pause
       }
     });
   };
@@ -404,7 +404,7 @@ const MusicStrip = () => {
     ambientRefs.forEach(({ name, ref }) => {
       if (activeSounds.has(name)) {
         console.log(`🔇 Muting ${name} sound for video playback`);
-        fadeSoundAudio(ref, name, 0, 300); // Quick fade out
+        fadeSoundAudio(ref, name, 0, 300, false); // Quick fade out but don't pause
       }
     });
   };
@@ -433,32 +433,32 @@ const MusicStrip = () => {
     
     soundRanges.forEach(({ name, ref, start, end, volume }) => {
       if (currentPosition >= start && currentPosition < end && activeSounds.has(name)) {
-        fadeSoundAudio(ref, name, volume, 600); // Gentle fade in
+        fadeSoundAudio(ref, name, volume, 600, false); // Gentle fade in, don't pause
       }
     });
   };
 
-  // Handle lightbox opening (decrease background music and ambient sounds volume)
+  // Handle lightbox opening (completely mute background music and ambient sounds)
   const handleLightboxOpen = () => {
-    console.log('🔇 LIGHTBOX OPENED - Starting audio fade out');
+    console.log('🔇 LIGHTBOX OPENED - Completely muting all audio');
     setIsLightboxOpen(true); // Prevent scroll-based volume adjustments
     
     const audio = audioRef.current;
     if (audio && !audio.paused) {
-      console.log('🔇 Lightbox opened - fading out background music from', audio.volume, 'to 0.02');
+      console.log('🔇 Lightbox opened - completely muting background music from', audio.volume, 'to 0');
       // Clear any existing fade to ensure this takes priority
       if (fadeIntervalRef.current) {
         clearInterval(fadeIntervalRef.current);
         fadeIntervalRef.current = null;
       }
-      fadeAudio(audio, 0.02, 500); // Much lower volume and faster fade
+      fadeAudio(audio, 0, 500); // Complete silence
     } else if (audio && audio.paused) {
       console.log('🔇 Background music is paused, cannot fade');
     } else {
       console.log('🔇 No background audio found');
     }
     
-    // Also fade out all active ambient sounds
+    // Also completely mute all active ambient sounds
     const ambientRefs = [
       { name: 'first', ref: firstAudioRef },
       { name: '2nd', ref: secondAudioRef },
@@ -471,8 +471,8 @@ const MusicStrip = () => {
     
     ambientRefs.forEach(({ name, ref }) => {
       if (activeSounds.has(name)) {
-        console.log(`🔇 Lightbox opened - fading out ${name} ambient sound`);
-        fadeSoundAudio(ref, name, 0.02, 500); // Fade to very low volume instead of muting completely
+        console.log(`🔇 Lightbox opened - completely muting ${name} ambient sound`);
+        fadeSoundAudio(ref, name, 0, 500, false); // Complete silence but don't pause
       }
     });
   };
@@ -503,7 +503,7 @@ const MusicStrip = () => {
     soundRanges.forEach(({ name, ref, start, end, volume }) => {
       if (currentPosition >= start && currentPosition < end && activeSounds.has(name)) {
         console.log(`🔊 Lightbox closed - restoring ${name} ambient sound to volume`, volume);
-        fadeSoundAudio(ref, name, volume, 1000); // Gentle fade back to normal volume
+        fadeSoundAudio(ref, name, volume, 1000, false); // Gentle fade back to normal volume, don't pause
       }
     });
     
