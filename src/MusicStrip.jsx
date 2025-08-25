@@ -371,19 +371,21 @@ const MusicStrip = () => {
 
   // Watch for videoIndex changes to handle fade-out when lightbox opens
   useEffect(() => {
-    if (videoIndex) {
+    if (videoIndex !== null) {
+      console.log('🎬 Lightbox opened - fading out background music');
       handleLightboxOpen();
     }
   }, [videoIndex]);
 
   // Handle video playing (fade out all audio for better video experience)
   const handleVideoPlay = () => {
-    console.log('🎬 Video playing - fading out all background audio');
+    console.log('🎬 Video playing - completely muting all background audio');
     
-    // Fade out background music
+    // Completely mute background music immediately
     const bgAudio = audioRef.current;
     if (bgAudio && !bgAudio.paused) {
-      fadeAudio(bgAudio, 0, 600); // Quick fade out
+      console.log('🔇 Muting background music for video playback');
+      fadeAudio(bgAudio, 0, 300); // Very quick fade to complete silence
     }
     
     // Fade out all active ambient sounds
@@ -399,7 +401,8 @@ const MusicStrip = () => {
     
     ambientRefs.forEach(({ name, ref }) => {
       if (activeSounds.has(name)) {
-        fadeSoundAudio(ref, name, 0, 400); // Quick fade out
+        console.log(`🔇 Muting ${name} sound for video playback`);
+        fadeSoundAudio(ref, name, 0, 300); // Quick fade out
       }
     });
   };
@@ -433,21 +436,26 @@ const MusicStrip = () => {
     });
   };
 
-  // Handle lightbox opening (fade out and mute background music)
+  // Handle lightbox opening (decrease background music volume)
   const handleLightboxOpen = () => {
     const audio = audioRef.current;
     if (audio && !audio.paused) {
-      console.log('Fading out background music for lightbox');
-      fadeAudio(audio, 0, 800); // Fade out over 800ms (ease out)
+      console.log('🔇 Lightbox opened - fading out background music from', audio.volume, 'to 0.02');
+      fadeAudio(audio, 0.02, 500); // Much lower volume and faster fade
+    } else if (audio && audio.paused) {
+      console.log('🔇 Background music is paused, cannot fade');
+    } else {
+      console.log('🔇 No background audio found');
     }
   };
 
-  // Handle lightbox closing (fade in and unmute background music)
+  // Handle lightbox closing (restore background music volume)
   const handleLightboxClose = () => {
     const audio = audioRef.current;
     if (audio && !audio.paused) {
-      console.log('Fading in background music after lightbox close');
-      fadeAudio(audio, 0.20, 1200); // Decreased from 0.25 to 0.20
+      const targetVolume = currentPosition >= 2 ? 0.15 : 0.25; // Restore to appropriate volume based on position
+      console.log('🔊 Lightbox closed - restoring background music volume to', targetVolume);
+      fadeAudio(audio, targetVolume, 1000); // Fade back to normal volume
     }
     setVideoIndex(null);
   };
