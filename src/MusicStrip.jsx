@@ -127,6 +127,7 @@ const MusicStrip = () => {
   
   const [currentPosition, setCurrentPosition] = useState(0);
   const [activeSounds, setActiveSounds] = useState(new Set()); // Track which sounds are playing
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Track lightbox state
 
   // Enhanced video trigger function with debugging
   const handleVideoTrigger = (index) => {
@@ -203,9 +204,9 @@ const MusicStrip = () => {
     // Update position for display
     setCurrentPosition(position);
     
-    // Adjust background music volume based on position
+    // Adjust background music volume based on position (only if lightbox is not open)
     const bgAudio = audioRef.current;
-    if (bgAudio) {
+    if (bgAudio && !isLightboxOpen) {
       const targetBgVolume = position >= 2 ? 0.15 : 0.25; // Decreased from 0.20/0.30
       if (Math.abs(bgAudio.volume - targetBgVolume) > 0.02) {
         fadeAudio(bgAudio, targetBgVolume, 1000); // Smooth transition over 1 second
@@ -371,6 +372,7 @@ const MusicStrip = () => {
 
   // Watch for videoIndex changes to handle fade-out when lightbox opens
   useEffect(() => {
+    console.log('🎬 videoIndex changed:', videoIndex, '- isLightboxOpen will be:', videoIndex !== null);
     if (videoIndex !== null) {
       console.log('🎬 Lightbox opened - fading out background music');
       handleLightboxOpen();
@@ -438,9 +440,17 @@ const MusicStrip = () => {
 
   // Handle lightbox opening (decrease background music and ambient sounds volume)
   const handleLightboxOpen = () => {
+    console.log('🔇 LIGHTBOX OPENED - Starting audio fade out');
+    setIsLightboxOpen(true); // Prevent scroll-based volume adjustments
+    
     const audio = audioRef.current;
     if (audio && !audio.paused) {
       console.log('🔇 Lightbox opened - fading out background music from', audio.volume, 'to 0.02');
+      // Clear any existing fade to ensure this takes priority
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+        fadeIntervalRef.current = null;
+      }
       fadeAudio(audio, 0.02, 500); // Much lower volume and faster fade
     } else if (audio && audio.paused) {
       console.log('🔇 Background music is paused, cannot fade');
@@ -469,6 +479,9 @@ const MusicStrip = () => {
 
   // Handle lightbox closing (restore background music and ambient sounds volume)
   const handleLightboxClose = () => {
+    console.log('🔊 LIGHTBOX CLOSED - Restoring audio levels');
+    setIsLightboxOpen(false); // Re-enable scroll-based volume adjustments
+    
     const audio = audioRef.current;
     if (audio && !audio.paused) {
       const targetVolume = currentPosition >= 2 ? 0.15 : 0.25; // Restore to appropriate volume based on position
