@@ -133,6 +133,8 @@ const MusicStrip = () => {
   const handleVideoTrigger = (index) => {
     console.log(`🎬 Video trigger called with index: ${index}`);
     console.log(`🎬 Current videoIndex state before update: ${videoIndex}`);
+    console.log(`🎬 Current background music volume: ${audioRef.current?.volume}`);
+    console.log(`🎬 Current lightbox state: ${isLightboxOpen}`);
     setVideoIndex(index);
     console.log(`🎬 SetVideoIndex called with: ${index}`);
   };
@@ -373,9 +375,21 @@ const MusicStrip = () => {
   // Watch for videoIndex changes to handle fade-out when lightbox opens
   useEffect(() => {
     console.log('🎬 videoIndex changed:', videoIndex, '- isLightboxOpen will be:', videoIndex !== null);
+    console.log('🎬 Background music current volume:', audioRef.current?.volume);
+    console.log('🎬 Background music paused state:', audioRef.current?.paused);
     if (videoIndex !== null) {
-      console.log('🎬 Lightbox opened - fading out background music');
+      console.log('🎬 Lightbox opened - calling handleLightboxOpen()');
+      
+      // Direct audio muting as backup
+      const bgAudio = audioRef.current;
+      if (bgAudio && !bgAudio.paused) {
+        console.log('🔇 DIRECT MUTE - Fading background music to 0');
+        fadeAudio(bgAudio, 0, 500);
+      }
+      
       handleLightboxOpen();
+    } else {
+      console.log('🎬 videoIndex is null - lightbox should be closed');
     }
   }, [videoIndex]);
 
