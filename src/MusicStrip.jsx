@@ -436,7 +436,7 @@ const MusicStrip = () => {
     });
   };
 
-  // Handle lightbox opening (decrease background music volume)
+  // Handle lightbox opening (decrease background music and ambient sounds volume)
   const handleLightboxOpen = () => {
     const audio = audioRef.current;
     if (audio && !audio.paused) {
@@ -447,9 +447,27 @@ const MusicStrip = () => {
     } else {
       console.log('🔇 No background audio found');
     }
+    
+    // Also fade out all active ambient sounds
+    const ambientRefs = [
+      { name: 'first', ref: firstAudioRef },
+      { name: '2nd', ref: secondAudioRef },
+      { name: 'hippie', ref: hippieAudioRef },
+      { name: 'cubbon', ref: cubbonAudioRef },
+      { name: 'street', ref: streetAudioRef },
+      { name: 'metro', ref: metroAudioRef },
+      { name: 'churchStreet', ref: churchStreetAudioRef },
+    ];
+    
+    ambientRefs.forEach(({ name, ref }) => {
+      if (activeSounds.has(name)) {
+        console.log(`🔇 Lightbox opened - fading out ${name} ambient sound`);
+        fadeSoundAudio(ref, name, 0.02, 500); // Fade to very low volume instead of muting completely
+      }
+    });
   };
 
-  // Handle lightbox closing (restore background music volume)
+  // Handle lightbox closing (restore background music and ambient sounds volume)
   const handleLightboxClose = () => {
     const audio = audioRef.current;
     if (audio && !audio.paused) {
@@ -457,6 +475,25 @@ const MusicStrip = () => {
       console.log('🔊 Lightbox closed - restoring background music volume to', targetVolume);
       fadeAudio(audio, targetVolume, 1000); // Fade back to normal volume
     }
+    
+    // Restore ambient sounds based on current position
+    const soundRanges = [
+      { name: 'first', ref: firstAudioRef, start: 2.3, end: 6, volume: 0.95 },
+      { name: '2nd', ref: secondAudioRef, start: 6, end: 8.72, volume: 0.95 },
+      { name: 'hippie', ref: hippieAudioRef, start: 8.72, end: 10, volume: 0.95 },
+      { name: 'cubbon', ref: cubbonAudioRef, start: 10, end: 15, volume: 0.95 },
+      { name: 'street', ref: streetAudioRef, start: 15, end: 17.5, volume: 0.95 },
+      { name: 'metro', ref: metroAudioRef, start: 17.5, end: 18.10, volume: 0.95 },
+      { name: 'churchStreet', ref: churchStreetAudioRef, start: 18.10, end: 19.8, volume: 0.95 },
+    ];
+    
+    soundRanges.forEach(({ name, ref, start, end, volume }) => {
+      if (currentPosition >= start && currentPosition < end && activeSounds.has(name)) {
+        console.log(`🔊 Lightbox closed - restoring ${name} ambient sound to volume`, volume);
+        fadeSoundAudio(ref, name, volume, 1000); // Gentle fade back to normal volume
+      }
+    });
+    
     setVideoIndex(null);
   };
 
